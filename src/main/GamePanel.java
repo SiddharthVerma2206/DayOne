@@ -9,6 +9,7 @@ import java.util.Random;
 
 import javax.swing.JPanel;
 
+import entity.Bullet;
 import entity.Enemy;
 import entity.Player;
 import tile.TileManager;
@@ -24,16 +25,31 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int screenWidth = tileSize * maxScreenCol;
 	public final int screenHeight = tileSize * maxScreenRow;
 
+	//Stats
+	public int kills=0;
+	
 	//Enemy
 	ArrayList<Enemy>currEnemies = new ArrayList<>();
 	private Random random = new Random();
 	int spawnDelay = 120;
+	
+	//Bullets
+	private ArrayList<Bullet>currBullets = new ArrayList<>();
+	int bulletCount;
+	int maxBullets = 6;
+	boolean isReloading = false;	
+	private static int damageDelay = 120;
+	private static int bulletDelay = 30;
+	private static int reloadDelay = 120;	
+	private static int relTime = reloadDelay;
+	private static int delTime = bulletDelay;
 	
 	//FPS
 	int FPS = 60;
 	
 	KeyHandler keyH = new KeyHandler();
 	MouseHandler mouH = new MouseHandler();
+	CollisionChecker cChecker = new CollisionChecker(this);
 	Thread gameThread;
 	public Player player = new Player(this , keyH , mouH);
 	TileManager tileM = new TileManager(this);
@@ -54,28 +70,8 @@ public class GamePanel extends JPanel implements Runnable{
 		gameThread.start();
 	}
 	
-	public void spawnEnemy() {
-		double spawnX , spawnY;
-		if (random.nextBoolean()) { // Randomly choose top/bottom or left/right
-            spawnX = random.nextDouble() * screenWidth; // Random x position
-            spawnY = random.nextBoolean() ? -20 : screenHeight + 20; // Off-screen y position
-        } else {
-            spawnX = random.nextBoolean() ? -20 : screenWidth + 20; // Off-screen x position
-            spawnY = random.nextDouble() * screenHeight; // Random y position
-        }
-		Enemy enemy = new Enemy(this , spawnX , spawnY);
-		currEnemies.add(enemy);
-	}
-	
-	public void updateAllEnemies() { 
-		for(int i = 0 ; i<currEnemies.size() ; i++) {
-			Enemy enemy = currEnemies.get(i);
-			enemy.move();
-		}
-	}
 	
 	@Override
-
 	public void run() {
 		double drawInterval = 1000000000/FPS;
 		double delta = 0;
@@ -95,28 +91,124 @@ public class GamePanel extends JPanel implements Runnable{
 		}
 	}
 	
+	public void newBullet() {
+		if(!isReloading && bulletCount<maxBullets) {
+			Bullet newBullet = new Bullet(player.weaponX ,player.weaponY , mouH.mouseX, mouH.mouseY);
+			currBullets.add(newBullet);
+			bulletCount++;
+		}
+		if(bulletCount>=maxBullets) {
+			isReloading = true;
+		}
+	}
+	
+	public void reload() {
+		bulletCount = 0;
+		relTime = reloadDelay; 
+		isReloading = false;
+	}
+	
+	public void updateAllBullets() {
+		for(int i =0 ; i<currBullets.size();i++) {
+			Bullet bullet = currBullets.get(i);
+			bullet.move(screenWidth , screenHeight);
+			if(bullet.isVisible == false) {
+				currBullets.remove(i--);
+			}
+		}
+	}
+	
+	public void spawnEnemy() {
+		double spawnX , spawnY;
+		if (random.nextBoolean()) { // Randomly choose top/bottom or left/right
+            spawnX = random.nextDouble() * screenWidth; // Random x position
+            spawnY = random.nextBoolean() ? -20 : screenHeight + 20; // Off-screen y position
+        } else {
+            spawnX = random.nextBoolean() ? -20 : screenWidth + 20; // Off-screen x position
+            spawnY = random.nextDouble() * screenHeight; // Random y position
+        }
+		Enemy enemy = new Enemy(this , spawnX , spawnY);
+		currEnemies.add(enemy);
+	}
+	
+	public void updateAllEnemies() { 
+		for(int i = 0 ; i<currEnemies.size() ; i++) {
+			Enemy enemy = currEnemies.get(i);
+			enemy.move();
+			 if (cChecker.circleCollision(enemy.worldX, enemy.worldY, enemy.radius,
+                     player.worldX, player.worldY, player.radius) && player.isColliding==false) {
+				 player.isColliding = true;
+				 player.health-=enemy.damage;
+			 }
+		}
+	}
+	
 	public void update() {
+		delTime -= 1;
+		if(isReloading == true) {
+			relTime -= 1;
+		}
+		if(relTime <= 0 && isReloading) {
+			reload();
+		}
+		if(mouH.pressed == true) {
+			if(delTime<= 0 && !isReloading) {
+				newBullet();
+				delTime = bulletDelay;
+			}
+		}
 		player.update();
 		player.updateWeapon();
-		player.updateAllBullets();
+		updateAllBullets();
 		updateAllEnemies();
+		if(player.isColliding == true) {
+			damageDelay--;
+			if(damageDelay<=0) {
+				player.isColliding = false;
+				damageDelay = 120;
+			}
+		}
+		//Collision stuff
+		ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
+		ArrayList<Enemy> enemiesToRemove = new ArrayList<>();
+		for(Bullet bullet : currBullets) {
+			for(Enemy enemy : currEnemies) {
+				if (cChecker.circleCollision(bullet.posX, bullet.posY, bullet.radius,
+						enemy.worldX, enemy.worldY, enemy.radius)) {
+					bulletsToRemove.add(bullet); // Mark bullet for removal
+					enemy.health -= bullet.damage;
+					if(enemy.health <= 0) {
+						enemiesToRemove.add(enemy); 						
+						kills++;
+					}
+        			break; // Exit inner loop since bullet can only hit one enemy at a time
+				}
+			}
+		}
+		currBullets.removeAll(bulletsToRemove);
+		currEnemies.removeAll(enemiesToRemove);
 		spawnDelay--;
 		if(spawnDelay <= 0) {
 			spawnEnemy();
 			spawnDelay = 120;
 		}
 	}
-	
+
 	public void paintComponent(Graphics g) {
-		
 		super.paintComponent(g);
-		
 		Graphics2D g2 = (Graphics2D)g;
+		
 		tileM.draw(g2);
 		for(Enemy enemy : currEnemies) {
 			enemy.draw(g2);
 		}
+		for(Bullet bullet : currBullets) {
+			bullet.draw(g2);
+		}
 		player.draw(g2);
+		g.setColor(Color.WHITE);
+	    g.drawString("Kills: " + kills , 5, 10);
+	    g.drawString("Health: " + player.health , 5, 30);
 		g2.dispose();
 		
 	}

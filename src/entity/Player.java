@@ -3,7 +3,6 @@ package entity;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
 
 
 import main.GamePanel;
@@ -19,20 +18,9 @@ public class Player extends Entity{
 	//weapon 
 	boolean revolver = true;
 	double weaponAngle;
-	int weaponDistance = 40;
-	int weaponX ,weaponY;
-	
-	
-	//Bullets 
-	private ArrayList<Bullet>currBullets = new ArrayList<>();
-	int bulletCount;
-	int maxBullets = 6;
-	boolean isReloading = false;
-	private static int bulletDelay = 30;
-	private static int reloadDelay = 120;	
-	private static int relTime = reloadDelay;
-	private static int delTime = bulletDelay;
-	
+	int weaponDistance = 30;
+	public int weaponX;
+	public int weaponY;	
 	
 	public Player(GamePanel gp , KeyHandler keyH , MouseHandler mouH) {
 		super(gp);
@@ -47,6 +35,7 @@ public class Player extends Entity{
 		worldY = (gp.screenHeight/2) - correction;
 		speed = 2;
 		health = 4;
+		radius = 20;
 		direction = "down";
 	}
 	
@@ -62,32 +51,7 @@ public class Player extends Entity{
 		pistol = getScaledImage("/player/pistol");
 	}
 	
-	public void newBullet() {
-		if(!isReloading && bulletCount<maxBullets) {
-			Bullet newBullet = new Bullet(weaponX ,weaponY , mouH.mouseX, mouH.mouseY);
-			currBullets.add(newBullet);
-			bulletCount++;
-		}
-		if(bulletCount>=maxBullets) {
-			isReloading = true;
-		}
-	}
 	
-	public void reload() {
-		bulletCount = 0;
-		relTime = reloadDelay; 
-		isReloading = false;
-	}
-	
-	public void updateAllBullets() {
-		for(int i =0 ; i<currBullets.size();i++) {
-			Bullet bullet = currBullets.get(i);
-			bullet.move(gp.screenWidth , gp.screenHeight);
-			if(bullet.isVisible == false) {
-				currBullets.remove(i--);
-			}
-		}
-	}
 
 	public void updateWeapon() {
 		double deltaX = mouH.mouseX - worldX;
@@ -96,20 +60,6 @@ public class Player extends Entity{
 	}
 	
 	public void update() {
-		delTime -= 1;
-		if(isReloading == true) {
-			relTime -= 1;
-		}
-		if(relTime <= 0 && isReloading) {
-			reload();
-		}
-		if(mouH.pressed == true) {
-			if(delTime<= 0 && !isReloading) {
-				newBullet();
-				delTime = bulletDelay;
-			}
-		}
-		
 		if(keyH.upKey == true || keyH.downKey == true ||keyH.rightKey == true || keyH.leftKey == true) {
 			if(keyH.upKey == true) {
 				direction = "up";
@@ -128,7 +78,6 @@ public class Player extends Entity{
 				worldX += speed;
 			}
 			
-			collisionOn = false;
 			
 			spriteCounter++;
 			if(spriteCounter > 12) {
@@ -187,10 +136,6 @@ public class Player extends Entity{
 		}
 		
 		g2.drawImage(image,worldX,worldY,null);
-		
-		for(Bullet bullet : currBullets) {
-			bullet.draw(g2);
-		}
 		
 		 weaponX = (int) ((worldX+correction) + weaponDistance * Math.cos(weaponAngle));
 	     weaponY = (int) ((worldY+correction) + weaponDistance * Math.sin(weaponAngle));

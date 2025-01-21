@@ -8,13 +8,13 @@ import main.GamePanel;
 public class Enemy extends Entity{
 
 	BufferedImage image = null;
-	
 	public Enemy(GamePanel gp , double spawnX , double spawnY) {
 		super(gp);
 		worldX = (int)spawnX;
 		worldY = (int)spawnY;
 		speed = 2;
-		health = 1;
+		radius = 25;
+		health = 2;
 		damage = 1;
 		image = getScaledImage("/player/guy_down_1");
 	}
@@ -23,11 +23,10 @@ public class Enemy extends Entity{
 		double deltaX = gp.player.worldX - worldX;
         double deltaY = gp.player.worldY - worldY;
         double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-        if (distance > 0) {
-        	  double normalizedX = deltaX / distance;
-              double normalizedY = deltaY / distance;
-
+        double normalizedX = deltaX / distance;
+        double normalizedY = deltaY / distance;
+        
+        if (distance > 20) {
               // Move the enemy consistently at the given speed
               worldX += normalizedX * speed;
               worldY += normalizedY * speed;

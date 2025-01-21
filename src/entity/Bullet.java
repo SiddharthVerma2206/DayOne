@@ -1,6 +1,7 @@
 package entity;
 
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -8,19 +9,24 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public class Bullet {
-
-	int posX , posY , speed;
+	
+	public int posX , posY , speed, damage;
 	double dx,dy;
-	boolean isVisible;	
+	public boolean isVisible;	
 	double angle;
+	public int radius;
+	Rectangle solidArea;
 	BufferedImage bullet;
 	
 	public Bullet(int startX , int startY , int mouseX , int mouseY) {
 		this.posX = startX ;
 		this.posY = startY ;
 		this.angle = Math.atan2(mouseY-startY, mouseX-startX);
+		solidArea= new Rectangle(0,0,16,16);
 		isVisible = true;
+		radius = 5;
 		speed = 10;
+		damage = 1;
 		this.dx = speed * Math.cos(angle);
 		this.dy = speed * Math.sin(angle);
 		getImage();
