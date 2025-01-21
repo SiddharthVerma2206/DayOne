@@ -51,7 +51,7 @@ public class Player extends Entity{
 		setDefaultValues();
 		getPlayerImage();
 	}
-	
+
 	public void setDefaultValues() {
 		worldX =gp.tileSize * 25;
 		worldY= gp.tileSize * 25;
