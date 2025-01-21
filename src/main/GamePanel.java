@@ -27,7 +27,7 @@ public class GamePanel extends JPanel implements Runnable{
 	//Enemy
 	ArrayList<Enemy>currEnemies = new ArrayList<>();
 	private Random random = new Random();
-	int spawnDelay = 1000;
+	int spawnDelay = 120;
 	
 	//FPS
 	int FPS = 60;
@@ -96,14 +96,14 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void update() {
-		spawnDelay-=5;
 		player.update();
 		player.updateWeapon();
 		player.updateAllBullets();
 		updateAllEnemies();
+		spawnDelay--;
 		if(spawnDelay <= 0) {
 			spawnEnemy();
-			spawnDelay = 1000;
+			spawnDelay = 120;
 		}
 	}
 	

@@ -9,24 +9,23 @@ public class MouseHandler extends MouseAdapter {
 	public boolean pressed;
 	public Point mousePosition = new Point(0,0);
 	
-    @Override
     public void mousePressed(MouseEvent e) {
-        mouseX = e.getX();
-        mouseY = e.getY();
         pressed = true;
     }
     
-    @Override
     public void mouseMoved(MouseEvent e) {
-        mousePosition = e.getPoint(); // Update mouse position on movement
+        mouseX = e.getX();
+        mouseY = e.getY();
     }
     
     public void mouseReleased(MouseEvent e) {
     	pressed = false;   	
     }
     
-    public Point getMousePosition() {
-        return mousePosition; // Return current mouse position
+    public void mouseDragged(MouseEvent e) {
+      mouseX = e.getX();
+      mouseY = e.getY();
     }
+    
     
 }

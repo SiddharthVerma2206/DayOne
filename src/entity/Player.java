@@ -3,15 +3,12 @@ package entity;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 
-import javax.imageio.ImageIO;
 
 import main.GamePanel;
 import main.KeyHandler;
 import main.MouseHandler;
-import main.UtilityTool;
 
 public class Player extends Entity{
 	
@@ -31,8 +28,8 @@ public class Player extends Entity{
 	int bulletCount;
 	int maxBullets = 6;
 	boolean isReloading = false;
-	private static int bulletDelay = 500;
-	private static int reloadDelay = 2000;	
+	private static int bulletDelay = 30;
+	private static int reloadDelay = 120;	
 	private static int relTime = reloadDelay;
 	private static int delTime = bulletDelay;
 	
@@ -49,6 +46,7 @@ public class Player extends Entity{
 		worldX = (gp.screenWidth/2) - correction;
 		worldY = (gp.screenHeight/2) - correction;
 		speed = 2;
+		health = 4;
 		direction = "down";
 	}
 	
@@ -92,15 +90,15 @@ public class Player extends Entity{
 	}
 
 	public void updateWeapon() {
-		double deltaX = mouH.mousePosition.x - worldX;
-        double deltaY = mouH.mousePosition.y - worldY;
+		double deltaX = mouH.mouseX - worldX;
+        double deltaY = mouH.mouseY- worldY;
         this.weaponAngle = Math.atan2(deltaY, deltaX);
 	}
 	
 	public void update() {
-		delTime -= 15;
+		delTime -= 1;
 		if(isReloading == true) {
-			relTime -= 15;
+			relTime -= 1;
 		}
 		if(relTime <= 0 && isReloading) {
 			reload();

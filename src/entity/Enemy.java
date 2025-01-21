@@ -11,9 +11,11 @@ public class Enemy extends Entity{
 	
 	public Enemy(GamePanel gp , double spawnX , double spawnY) {
 		super(gp);
-		this.worldX = (int)spawnX;
-		this.worldY = (int)spawnY;
+		worldX = (int)spawnX;
+		worldY = (int)spawnY;
 		speed = 2;
+		health = 1;
+		damage = 1;
 		image = getScaledImage("/player/guy_down_1");
 	}
 	
@@ -23,8 +25,12 @@ public class Enemy extends Entity{
         double distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
         if (distance > 0) {
-            worldX += (deltaX / distance) * speed;
-            worldY += (deltaY / distance) * speed;
+        	  double normalizedX = deltaX / distance;
+              double normalizedY = deltaY / distance;
+
+              // Move the enemy consistently at the given speed
+              worldX += normalizedX * speed;
+              worldY += normalizedY * speed;
         }
 	}
 	
