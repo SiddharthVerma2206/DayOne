@@ -33,26 +33,12 @@ public class TileManager {
 			
 			int worldCol = 0;
 			int worldRow =0;
-			
-			
-			while(worldCol < gp.maxWorldCol && worldRow < gp.maxWorldRow) {
-				
+			while(worldCol < gp.maxScreenCol && worldRow < gp.maxScreenRow) {	
 				int worldX = worldCol * gp.tileSize;
 				int worldY = worldRow * gp.tileSize;
-				int screenX = worldX - gp.player.worldX + gp.player.screenX;
-				int screenY = worldY - gp.player.worldY + gp.player.screenY;
-				
-				if(worldX + gp.tileSize > gp.player.worldX - gp.player.screenX && 
-				   worldX - gp.tileSize < gp.player.worldX + gp.player.screenX && 
-				   worldY + gp.tileSize > gp.player.worldY - gp.player.screenY && 
-				   worldY - gp.tileSize < gp.player.worldY + gp.player.screenY) {
-					
-					g2.drawImage(image, screenX, screenY,null);					
-				}
-				
+				g2.drawImage(image, worldX, worldY,null);					
 				worldCol++;
-				
-				if(worldCol == gp.maxWorldCol) {
+				if(worldCol == gp.maxScreenCol) {
 					worldCol = 0;
 					worldRow++;
 				}

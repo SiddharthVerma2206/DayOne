@@ -4,13 +4,8 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
-
-import main.GamePanel;
-import main.MouseHandler;
-
 
 public class Bullet {
 
@@ -21,8 +16,8 @@ public class Bullet {
 	BufferedImage bullet;
 	
 	public Bullet(int startX , int startY , int mouseX , int mouseY) {
-		this.posX = startX + 24;
-		this.posY = startY + 24;
+		this.posX = startX ;
+		this.posY = startY ;
 		this.angle = Math.atan2(mouseY-startY, mouseX-startX);
 		isVisible = true;
 		speed = 10;

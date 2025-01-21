@@ -1,7 +1,6 @@
 package entity;
 
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -18,11 +17,12 @@ public class Player extends Entity{
 	
 	KeyHandler keyH;
 	MouseHandler mouH;
+	int correction = gp.tileSize/2;
 	
 	//weapon 
 	boolean revolver = true;
 	double weaponAngle;
-	int weaponDistance =45;
+	int weaponDistance = 40;
 	int weaponX ,weaponY;
 	
 	
@@ -36,26 +36,19 @@ public class Player extends Entity{
 	private static int relTime = reloadDelay;
 	private static int delTime = bulletDelay;
 	
-	public final int screenX;
-	public final int screenY;
-	
 	
 	public Player(GamePanel gp , KeyHandler keyH , MouseHandler mouH) {
 		super(gp);
 		this.keyH = keyH;
 		this.mouH = mouH;
-		
-		screenX = gp.screenWidth/2 - (gp.tileSize/2);
-		screenY = gp.screenHeight/2 - (gp.tileSize/2);
-
 		setDefaultValues();
 		getPlayerImage();
 	}
 
 	public void setDefaultValues() {
-		worldX =gp.tileSize * 25;
-		worldY= gp.tileSize * 25;
-		speed = 4;
+		worldX = (gp.screenWidth/2) - correction;
+		worldY = (gp.screenHeight/2) - correction;
+		speed = 2;
 		direction = "down";
 	}
 	
@@ -85,7 +78,7 @@ public class Player extends Entity{
 	
 	public void newBullet() {
 		if(!isReloading && bulletCount<maxBullets) {
-			Bullet newBullet = new Bullet(screenX , screenY , mouH.mouseX, mouH.mouseY);
+			Bullet newBullet = new Bullet(weaponX ,weaponY , mouH.mouseX, mouH.mouseY);
 			currBullets.add(newBullet);
 			bulletCount++;
 		}
@@ -112,8 +105,8 @@ public class Player extends Entity{
 	}
 
 	public void updateWeapon() {
-		double deltaX = mouH.mousePosition.x - screenX;
-        double deltaY = mouH.mousePosition.y - screenY;
+		double deltaX = mouH.mousePosition.x - worldX;
+        double deltaY = mouH.mousePosition.y - worldY;
         this.weaponAngle = Math.atan2(deltaY, deltaX);
 	}
 	
@@ -208,15 +201,15 @@ public class Player extends Entity{
 			break;		
 		}
 		
-		g2.drawImage(image, screenX, screenY,null);
+		g2.drawImage(image,worldX,worldY,null);
 		
 		updateAllBullets();
 		for(Bullet bullet : currBullets) {
 			bullet.draw(g2);
 		}
 		
-		 weaponX = (int) ((screenX+24) + weaponDistance * Math.cos(weaponAngle));
-	     weaponY = (int) ((screenY+24) + weaponDistance * Math.sin(weaponAngle));
+		 weaponX = (int) ((worldX+correction) + weaponDistance * Math.cos(weaponAngle));
+	     weaponY = (int) ((worldY+correction) + weaponDistance * Math.sin(weaponAngle));
 	     AffineTransform oldTransform = g2.getTransform();
 	     g2.translate(weaponX, weaponY);
 	     g2.rotate(weaponAngle);
