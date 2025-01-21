@@ -53,27 +53,15 @@ public class Player extends Entity{
 	}
 	
 	public void getPlayerImage() {
-		up1 = setup("guy_up_1");
-		up2 = setup("guy_up_2");
-		down1 = setup("guy_down_1");
-		down2 = setup("guy_down_2");
-		left1 = setup("guy_left_1");
-		left2 = setup("guy_left_2");
-		right1 = setup("guy_right_1");
-		right2 = setup("guy_right_2");
-		pistol = setup("pistol");
-	}
-	
-	public BufferedImage setup(String imagePath) {
-		UtilityTool uTool = new UtilityTool();
-		BufferedImage Image = null;
-		try {
-			Image = ImageIO.read(getClass().getResourceAsStream("/player/" + imagePath + ".png"));
-			Image = uTool.scaleImage(Image, gp.tileSize , gp.tileSize);
-		}catch(IOException e){
-			e.printStackTrace();
-		}
-		return Image;
+		up1 = getScaledImage("/player/guy_up_1");
+		up2 = getScaledImage("/player/guy_up_2");
+		down1 = getScaledImage("/player/guy_down_1");
+		down2 = getScaledImage("/player/guy_down_2");
+		left1 = getScaledImage("/player/guy_left_1");
+		left2 = getScaledImage("/player/guy_left_2");
+		right1 = getScaledImage("/player/guy_right_1");
+		right2 = getScaledImage("/player/guy_right_2");
+		pistol = getScaledImage("/player/pistol");
 	}
 	
 	public void newBullet() {
@@ -99,7 +87,6 @@ public class Player extends Entity{
 			bullet.move(gp.screenWidth , gp.screenHeight);
 			if(bullet.isVisible == false) {
 				currBullets.remove(i--);
-				System.out.println("Bullet Removed");
 			}
 		}
 	}
@@ -203,7 +190,6 @@ public class Player extends Entity{
 		
 		g2.drawImage(image,worldX,worldY,null);
 		
-		updateAllBullets();
 		for(Bullet bullet : currBullets) {
 			bullet.draw(g2);
 		}

@@ -2,7 +2,12 @@ package entity;
 
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import main.GamePanel;
+import main.UtilityTool;
 
 public class Entity {
 	GamePanel gp;
@@ -20,4 +25,17 @@ public class Entity {
 	public Entity(GamePanel gp) {
 		this.gp = gp;
 	}
+	
+	public BufferedImage getScaledImage(String imagePath) {
+		UtilityTool uTool = new UtilityTool();
+		BufferedImage Image = null;
+		try {
+			Image = ImageIO.read(getClass().getResourceAsStream(imagePath + ".png"));
+			Image = uTool.scaleImage(Image, gp.tileSize , gp.tileSize);
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		return Image;
+	}
+	
 }
