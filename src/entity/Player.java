@@ -23,12 +23,14 @@ public class Player extends Entity{
 	
 	//weapon 
 	public Weapon currWeapon;
-	BufferedImage weapon1 = null; 
+	BufferedImage weapon1 = null;
+	public BufferedImage reload1=null , reload2=null;
 	boolean revolver = true;
 	double weaponAngle;
 	int weaponDistance = 30;
 	public int weaponX;
-	public int weaponY;	
+	public int weaponY;
+	int reloadCounter , reloadNum=1 ;
 	
 	public Player(GamePanel gp , KeyHandler keyH , MouseHandler mouH) {
 		super(gp);
@@ -44,7 +46,7 @@ public class Player extends Entity{
 		currWeapon = new Weapon("Pistol" ,120 ,30 ,6 ,2 ,"/player/Pistol");
 		getWeaponImage(currWeapon.getImagePath());
 		health = 4;
-		radius = 20;
+		radius = 10;
 		direction = "down";
 	}
 	
@@ -61,12 +63,15 @@ public class Player extends Entity{
 	
 	public void getWeaponImage(String imagePath) {
 		weapon1 = getScaledImage(imagePath);
+		reload1 = getScaledImage("/player/reload1");
+		reload2 = getScaledImage("/player/reload2");
 	}
 	
 	public void updateWeapon() {
 		double deltaX = mouH.mouseX - worldX;
         double deltaY = mouH.mouseY- worldY;
         this.weaponAngle = Math.atan2(deltaY, deltaX);
+        gp.setBulletValues();
 	}
 	
 	public void changeWeapon() {
@@ -76,6 +81,10 @@ public class Player extends Entity{
 	}
 	
 	public void update() {
+		if(health <=0) {
+			gp.gameState =gp.endState; 
+			gp.resetGame();
+		}
 		velocityX = 0;
 	    velocityY = 0;
 		if(keyH.weaponChangeKey == true) {
@@ -114,21 +123,33 @@ public class Player extends Entity{
 				spriteCounter = 0;
 			}	
 			}
-		idolCounter++;
-		if(idolCounter > 10) {
-			if(idolNum == 1) {
-				idolNum = 2;
-			}
-			else if(idolNum == 2) {
-				idolNum = 3;
-			}
-			else if(idolNum == 3) {
-				idolNum = 1;
-			}
-			idolCounter = 0;
-		}
+		if(gp.isReloading == true) {
+			reloadCounter++;
+			if(reloadCounter > 7) {
+				if(reloadNum == 1) {
+					reloadNum = 2;
+				}
+				else if(reloadNum == 2) {
+					reloadNum = 1;
+				}
+				reloadCounter = 0;
+			}	
+	    }
 		if(keyH.upKey == false && keyH.downKey == false && keyH.rightKey == false && keyH.leftKey == false) {
 			direction = "idol";
+			idolCounter++;
+			if(idolCounter > 12) {
+				if(idolNum == 1) {
+					idolNum = 2;
+				}
+				else if(idolNum == 2) {
+					idolNum = 3;
+				}
+				else if(idolNum == 3) {
+					idolNum = 1;
+				}
+				idolCounter = 0;
+			}
 		}	
 	}
 	
@@ -136,8 +157,16 @@ public class Player extends Entity{
 		
 		BufferedImage player = null;
 		BufferedImage weapon = null;
+		if(gp.isReloading == true) {
+			if(reloadNum == 1) {
+				weapon = reload1;
+			}else if(reloadNum == 2) {
+				weapon = reload2;
+			}
+		}
+		else {
 		weapon = weapon1;
-		
+	    }
 		switch(direction) {
 		case "idol":
 			if(idolNum == 1) {

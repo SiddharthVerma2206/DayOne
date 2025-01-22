@@ -5,6 +5,7 @@ public class Weapon {
 	private int reloadTime , delTime , damage, maxBullets;
 	private String imagePath;
 	
+	
 	public Weapon(String name , int reloadTime , int delTime, int maxBullets , int damage , String imagePath) {
 		this.name = name ;
 		this.reloadTime = reloadTime ;

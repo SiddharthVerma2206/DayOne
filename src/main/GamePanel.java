@@ -27,34 +27,46 @@ public class GamePanel extends JPanel implements Runnable{
 	public final int screenHeight = tileSize * maxScreenRow;
 
 	//Stats
-	public int kills=0;
+	public int prevGameKills = 0,kills=0;
 	
 	//Enemy
 	ArrayList<Enemy>currEnemies = new ArrayList<>();
 	private Random random = new Random();
-	int spawnDelay = 120;
+	int defSpawnDelay = 120;
+	int spawnDelay=defSpawnDelay;
+	int enemiesSpawned = 0;
 	
 	//Bullets
 	private ArrayList<Bullet>currBullets = new ArrayList<>();
 	private static int damageDelay = 120;
-	boolean isReloading = false;
-	int bulletCount;
-	int maxBullets , bulletDamage;
+	public boolean isReloading = false;
+	int bulletCount=0;
+	int maxBullets = 6 , bulletDamage = 2;
 	private static int bulletDelay = 30;
 	private static int reloadDelay = 120;	
 	private static int delTime = bulletDelay;
 	private static int relTime = reloadDelay;
 
+	//Game State
+	public int titleState = 0;
+	public int playState = 1;
+	public int pauseState = 2;
+	public int controlsState = 3;
+	public int endState = 4;
+	public int gameState = titleState;
+	
 	
 	//FPS
 	int FPS = 60;
 	
-	KeyHandler keyH = new KeyHandler();
+	Thread gameThread;
+	
+	KeyHandler keyH = new KeyHandler(this);
 	MouseHandler mouH = new MouseHandler();
 	CollisionChecker cChecker = new CollisionChecker(this);
-	Thread gameThread;
 	public Player player = new Player(this , keyH , mouH);
 	TileManager tileM = new TileManager(this);
+	UI ui = new UI(this);
 	
 	public GamePanel() {
 		this.setPreferredSize(new Dimension(screenWidth , screenHeight));
@@ -91,6 +103,27 @@ public class GamePanel extends JPanel implements Runnable{
 				delta--;
 			}
 		}
+	}	
+	
+	public void resetGame() {
+		Player player = new Player(this , keyH , mouH);
+		this.player = player;
+		ArrayList<Enemy>Enemies = new ArrayList<>();
+		this.currEnemies = Enemies;
+		 ArrayList<Bullet>Bullets = new ArrayList<>();
+		this.currBullets = Bullets;
+		defSpawnDelay = 120;
+		spawnDelay=defSpawnDelay;
+		enemiesSpawned = 0;
+		isReloading = false;
+		bulletCount=0;
+		bulletDamage = 2;
+		bulletDelay = 30;
+		reloadDelay = 120;	
+		delTime = bulletDelay;
+		relTime = reloadDelay;
+		prevGameKills = kills;
+		kills = 0;
 	}
 	
 	public void setBulletValues() {
@@ -101,7 +134,6 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void newBullet() {
-		setBulletValues();
 		if(!isReloading && bulletCount<maxBullets) {
 			Bullet newBullet = new Bullet(player.weaponX ,player.weaponY , mouH.mouseX, mouH.mouseY);
 			currBullets.add(newBullet);
@@ -113,9 +145,12 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void reload() {
-		bulletCount = 0;
-		relTime = reloadDelay; 
-		isReloading = false;
+		relTime--;
+        if (relTime <= 0) {
+        	bulletCount = 0;
+    		relTime = reloadDelay; 
+    		isReloading = false;
+        }
 	}
 	
 	public void updateAllBullets() {
@@ -163,10 +198,7 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	private void updateTimers() {
 	    if (isReloading) {
-	        relTime--;
-	        if (relTime <= 0) {
-	            reload();
-	        }
+	        reload();
 	    }
 
 	    if (delTime > 0) {
@@ -197,7 +229,12 @@ public class GamePanel extends JPanel implements Runnable{
 	    spawnDelay--;
 	    if (spawnDelay <= 0) {
 	        spawnEnemy();
-	        spawnDelay = 120; // Reset spawn delay
+	        enemiesSpawned++;
+	        if(enemiesSpawned>=10) {
+	        	enemiesSpawned = 0;
+	        	 defSpawnDelay-=10;
+	        }
+	        spawnDelay = defSpawnDelay; // Reset spawn delay
 	    }
 	}
 
@@ -211,7 +248,6 @@ public class GamePanel extends JPanel implements Runnable{
 	                                          enemy.worldX, enemy.worldY, enemy.radius)) {
 	                bulletsToRemove.add(bullet); // Mark bullet for removal
 	                enemy.health -= bulletDamage; // Reduce enemy health
-
 	                if (enemy.health <= 0) {
 	                    enemiesToRemove.add(enemy); // Mark enemy for removal
 	                    kills++; // Increment kill count
@@ -226,36 +262,50 @@ public class GamePanel extends JPanel implements Runnable{
 	    currEnemies.removeAll(enemiesToRemove);
 	}
 	
+	public void showStats(Graphics2D g2) {
+		g2.setColor(Color.WHITE);
+		g2.drawString("Kills: " + kills , 5, 10);
+		g2.drawString("Health: " + player.health , 5, 30);
+		g2.drawString(""+(maxBullets - bulletCount), mouH.mouseX , mouH.mouseY);
+	}
+	
 	public void update() {
-		updateTimers();               // Manage all time-related logic
-	    if (mouH.pressed && delTime <= 0 && !isReloading) {
-	        newBullet();              // Create a new bullet if possible
-	        delTime = bulletDelay;    // Reset bullet timer
-	    }
-	    player.updateWeapon();
-	    player.update();              // Update player 
-	    updateAllBullets();           // Move and clean up bullets
-	    updateAllEnemies();           // Move and handle enemy logic
-	    handlePlayerCollisions();     // Check and handle player collisions
-	    handleBulletEnemyCollisions();// Check and handle bullet-enemy collisions
-	    handleEnemySpawning();        // Spawn enemies if needed
+		if(gameState == playState) {
+			updateTimers();               // Manage all time-related logic
+			if (mouH.pressed && delTime <= 0 && !isReloading) {
+				newBullet();              // Create a new bullet if possible
+				delTime = bulletDelay;    // Reset bullet timer
+			}
+			player.updateWeapon();
+			player.update();              // Update player 
+			updateAllBullets();           // Move and clean up bullets
+			updateAllEnemies();           // Move and handle enemy logic
+			handlePlayerCollisions();     // Check and handle player collisions
+			handleBulletEnemyCollisions();// Check and handle bullet-enemy collisions
+			handleEnemySpawning();        // Spawn enemies if needed			
+		}else {
+			//nothing will update in pause and title State
+		}
 	}
 
 	public void paintComponent(Graphics g) {
+		
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D)g;
-		
-		tileM.draw(g2);
-		for(Enemy enemy : currEnemies) {
-			enemy.draw(g2);
+		tileM.draw(g2);		
+		if(gameState == playState){
+			for(Enemy enemy : currEnemies) {
+				enemy.draw(g2);
+			}
+			for(Bullet bullet : currBullets) {
+				bullet.draw(g2);
+			}
+			player.draw(g2);
+			showStats(g2);	
+			ui.draw(g2);
+		}else {
+			ui.draw(g2);
 		}
-		for(Bullet bullet : currBullets) {
-			bullet.draw(g2);
-		}
-		player.draw(g2);
-		g.setColor(Color.WHITE);
-	    g.drawString("Kills: " + kills , 5, 10);
-	    g.drawString("Health: " + player.health , 5, 30);
 		g2.dispose();
 		
 	}
