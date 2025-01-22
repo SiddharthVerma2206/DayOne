@@ -14,8 +14,13 @@ public class Player extends Entity{
 	KeyHandler keyH;
 	MouseHandler mouH;
 	int correction = gp.tileSize/2;
+	float velocityX = 0;
+	float velocityY = 0;
+	float playerSpeed = 2.0f;
 	
 	//weapon 
+	public Weapon currWeapon;
+	BufferedImage weapon1 = null; 
 	boolean revolver = true;
 	double weaponAngle;
 	int weaponDistance = 30;
@@ -33,7 +38,8 @@ public class Player extends Entity{
 	public void setDefaultValues() {
 		worldX = (gp.screenWidth/2) - correction;
 		worldY = (gp.screenHeight/2) - correction;
-		speed = 2;
+		currWeapon = new Weapon("Pistol" ,120 ,30 ,6 ,2 ,"/player/Pistol");
+		getWeaponImage(currWeapon.getImagePath());
 		health = 4;
 		radius = 20;
 		direction = "down";
@@ -48,35 +54,50 @@ public class Player extends Entity{
 		left2 = getScaledImage("/player/guy_left_2");
 		right1 = getScaledImage("/player/guy_right_1");
 		right2 = getScaledImage("/player/guy_right_2");
-		pistol = getScaledImage("/player/pistol");
 	}
 	
+	public void getWeaponImage(String imagePath) {
+		weapon1 = getScaledImage(imagePath);
+	}
 	
-
 	public void updateWeapon() {
 		double deltaX = mouH.mouseX - worldX;
         double deltaY = mouH.mouseY- worldY;
         this.weaponAngle = Math.atan2(deltaY, deltaX);
 	}
 	
+	public void changeWeapon() {
+		Weapon newWeapon = new Weapon("SMG", 60 , 15 ,25 , 1, "/player/SMG");
+		this.currWeapon = newWeapon;
+		getWeaponImage(currWeapon.getImagePath());
+	}
+	
 	public void update() {
+		velocityX = 0;
+	    velocityY = 0;
+		if(keyH.weaponChangeKey == true) {
+			changeWeapon();
+			keyH.weaponChangeKey = false;
+		}
 		if(keyH.upKey == true || keyH.downKey == true ||keyH.rightKey == true || keyH.leftKey == true) {
-			if(keyH.upKey == true) {
-				direction = "up";
-				worldY -= speed;
-			}
-			else if(keyH.downKey == true) {
-				direction = "down";
-				worldY += speed;
-			}
-			else if(keyH.leftKey == true) {
-				direction = "left";
-				worldX -= speed;
-			}
-			else if(keyH.rightKey == true) {
-				direction = "right";
-				worldX += speed;
-			}
+			if (keyH.upKey) {
+		        velocityY = -playerSpeed;
+		        direction = "up";
+		    } 
+		    if (keyH.downKey) {
+		        velocityY = playerSpeed;
+		        direction = "down";
+		    } 
+		    if (keyH.leftKey) {
+		        velocityX = -playerSpeed;
+		        direction = "left";
+		    } 
+		    if (keyH.rightKey) {
+		        velocityX = playerSpeed;
+		        direction = "right";
+		    }
+		    worldX += velocityX;
+		    worldY += velocityY;
 			
 			
 			spriteCounter++;
@@ -94,48 +115,46 @@ public class Player extends Entity{
 	
 	public void draw(Graphics2D g2) {
 		
-		BufferedImage image = null;
+		BufferedImage player = null;
 		BufferedImage weapon = null;
-		if(revolver == true) {
-			weapon = pistol;
-		}
+		weapon = weapon1;
 		
 		switch(direction) {
 		case "up":
 			if(spriteNum == 1) {
-				image = up1;				
+				player= up1;				
 			}
 			if(spriteNum == 2) {
-				image = up2;				
+				player= up2;				
 			}			
 			break;
 		case "down":
 			if(spriteNum == 1) {
-				image = down1;				
+				player= down1;				
 			}
 			if(spriteNum == 2) {
-				image = down2;
+				player= down2;
 			}
 			break;
 		case "left":
 			if(spriteNum == 1) {
-				image = left1;
+				player = left1;
 			}
 			if(spriteNum == 2) {
-				image = left2;
+				player= left2;
 			}
 			break;
 		case "right":
 			if(spriteNum == 1) {
-				image = right1;			
+				player= right1;			
 			}
 			if(spriteNum == 2) {
-				image = right2;
+				player = right2;
 			}
 			break;		
 		}
 		
-		g2.drawImage(image,worldX,worldY,null);
+		g2.drawImage(player,worldX,worldY,null);
 		
 		 weaponX = (int) ((worldX+correction) + weaponDistance * Math.cos(weaponAngle));
 	     weaponY = (int) ((worldY+correction) + weaponDistance * Math.sin(weaponAngle));

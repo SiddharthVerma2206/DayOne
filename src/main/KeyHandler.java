@@ -6,6 +6,7 @@ import java.awt.event.KeyListener;
 public class KeyHandler implements KeyListener {
 
 	public boolean upKey , downKey , leftKey , rightKey;
+	public boolean weaponChangeKey;
 	
 	@Override
 	public void keyTyped(KeyEvent e) {
@@ -28,11 +29,14 @@ public class KeyHandler implements KeyListener {
 		if(code == KeyEvent.VK_D) {
 			rightKey = true;
 		}
+		if(code == KeyEvent.VK_E) {
+			weaponChangeKey = true;
+		}
 	}
 
 	@Override
 	public void keyReleased(KeyEvent e) {
-int code = e.getKeyCode();
+		int code = e.getKeyCode();
 		
 		if(code == KeyEvent.VK_W) {
 			upKey = false;
@@ -45,6 +49,9 @@ int code = e.getKeyCode();
 		}
 		if(code == KeyEvent.VK_D) {
 			rightKey = false;
+		}
+		if(code == KeyEvent.VK_E) {
+			weaponChangeKey = false;
 		}
 		
 	}

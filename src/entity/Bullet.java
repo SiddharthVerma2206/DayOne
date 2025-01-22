@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 
 public class Bullet {
 	
-	public int posX , posY , speed, damage;
+	public int posX , posY , speed;
 	double dx,dy;
 	public boolean isVisible;	
 	double angle;
@@ -26,7 +26,6 @@ public class Bullet {
 		isVisible = true;
 		radius = 5;
 		speed = 10;
-		damage = 1;
 		this.dx = speed * Math.cos(angle);
 		this.dy = speed * Math.sin(angle);
 		getImage();

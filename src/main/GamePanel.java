@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Random;
 
 import javax.swing.JPanel;
@@ -35,14 +36,15 @@ public class GamePanel extends JPanel implements Runnable{
 	
 	//Bullets
 	private ArrayList<Bullet>currBullets = new ArrayList<>();
-	int bulletCount;
-	int maxBullets = 6;
-	boolean isReloading = false;	
 	private static int damageDelay = 120;
+	boolean isReloading = false;
+	int bulletCount;
+	int maxBullets , bulletDamage;
 	private static int bulletDelay = 30;
 	private static int reloadDelay = 120;	
-	private static int relTime = reloadDelay;
 	private static int delTime = bulletDelay;
+	private static int relTime = reloadDelay;
+
 	
 	//FPS
 	int FPS = 60;
@@ -91,7 +93,15 @@ public class GamePanel extends JPanel implements Runnable{
 		}
 	}
 	
+	public void setBulletValues() {
+		bulletDelay = player.currWeapon.getDelTime();
+		reloadDelay = player.currWeapon.getReloadTime();
+		maxBullets  = player.currWeapon.getMaxBullets();
+		bulletDamage = player.currWeapon.getDamage();
+	}
+	
 	public void newBullet() {
+		setBulletValues();
 		if(!isReloading && bulletCount<maxBullets) {
 			Bullet newBullet = new Bullet(player.weaponX ,player.weaponY , mouH.mouseX, mouH.mouseY);
 			currBullets.add(newBullet);
@@ -109,13 +119,14 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void updateAllBullets() {
-		for(int i =0 ; i<currBullets.size();i++) {
-			Bullet bullet = currBullets.get(i);
-			bullet.move(screenWidth , screenHeight);
-			if(bullet.isVisible == false) {
-				currBullets.remove(i--);
-			}
-		}
+	    Iterator<Bullet> bulletIterator = currBullets.iterator();
+	    while (bulletIterator.hasNext()) {
+	        Bullet bullet = bulletIterator.next();
+	        bullet.move(screenWidth, screenHeight);
+	        if (!bullet.isVisible) {
+	            bulletIterator.remove();
+	        }
+	    }
 	}
 	
 	public void spawnEnemy() {
@@ -143,55 +154,85 @@ public class GamePanel extends JPanel implements Runnable{
 		}
 	}
 	
+	private void updateTimers() {
+	    if (isReloading) {
+	        relTime--;
+	        if (relTime <= 0) {
+	            reload();
+	        }
+	    }
+
+	    if (delTime > 0) {
+	        delTime--;
+	    }
+
+	    if (player.isColliding) {
+	        damageDelay--;
+	        if (damageDelay <= 0) {
+	            player.isColliding = false;
+	            damageDelay = 120; // Reset damage delay
+	        }
+	    }
+	}
+
+	private void handlePlayerCollisions() {
+	    for (Enemy enemy : currEnemies) {
+	        if (cChecker.circleCollision(enemy.worldX, enemy.worldY, enemy.radius,
+	                                      player.worldX, player.worldY, player.radius)
+	            && !player.isColliding) {
+	            player.isColliding = true;
+	            player.health -= enemy.damage; // Decrease health based on enemy's damage
+	        }
+	    }
+	}
+
+	private void handleEnemySpawning() {
+	    spawnDelay--;
+	    if (spawnDelay <= 0) {
+	        spawnEnemy();
+	        spawnDelay = 120; // Reset spawn delay
+	    }
+	}
+
+	private void handleBulletEnemyCollisions() {
+	    ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
+	    ArrayList<Enemy> enemiesToRemove = new ArrayList<>();
+
+	    for (Bullet bullet : currBullets) {
+	        for (Enemy enemy : currEnemies) {
+	            if (cChecker.circleCollision(bullet.posX, bullet.posY, bullet.radius,
+	                                          enemy.worldX, enemy.worldY, enemy.radius)) {
+	                bulletsToRemove.add(bullet); // Mark bullet for removal
+	                enemy.health -= bulletDamage; // Reduce enemy health
+
+	                if (enemy.health <= 0) {
+	                    enemiesToRemove.add(enemy); // Mark enemy for removal
+	                    kills++; // Increment kill count
+	                }
+	                break; // A bullet can only hit one enemy at a time
+	            }
+	        }
+	    }
+
+	    // Remove marked bullets and enemies
+	    currBullets.removeAll(bulletsToRemove);
+	    currEnemies.removeAll(enemiesToRemove);
+	}
+
+	
 	public void update() {
-		delTime -= 1;
-		if(isReloading == true) {
-			relTime -= 1;
-		}
-		if(relTime <= 0 && isReloading) {
-			reload();
-		}
-		if(mouH.pressed == true) {
-			if(delTime<= 0 && !isReloading) {
-				newBullet();
-				delTime = bulletDelay;
-			}
-		}
-		player.update();
-		player.updateWeapon();
-		updateAllBullets();
-		updateAllEnemies();
-		if(player.isColliding == true) {
-			damageDelay--;
-			if(damageDelay<=0) {
-				player.isColliding = false;
-				damageDelay = 120;
-			}
-		}
-		//Collision stuff
-		ArrayList<Bullet> bulletsToRemove = new ArrayList<>();
-		ArrayList<Enemy> enemiesToRemove = new ArrayList<>();
-		for(Bullet bullet : currBullets) {
-			for(Enemy enemy : currEnemies) {
-				if (cChecker.circleCollision(bullet.posX, bullet.posY, bullet.radius,
-						enemy.worldX, enemy.worldY, enemy.radius)) {
-					bulletsToRemove.add(bullet); // Mark bullet for removal
-					enemy.health -= bullet.damage;
-					if(enemy.health <= 0) {
-						enemiesToRemove.add(enemy); 						
-						kills++;
-					}
-        			break; // Exit inner loop since bullet can only hit one enemy at a time
-				}
-			}
-		}
-		currBullets.removeAll(bulletsToRemove);
-		currEnemies.removeAll(enemiesToRemove);
-		spawnDelay--;
-		if(spawnDelay <= 0) {
-			spawnEnemy();
-			spawnDelay = 120;
-		}
+		updateTimers();               // Manage all time-related logic
+	    if (mouH.pressed && delTime <= 0 && !isReloading) {
+	        newBullet();              // Create a new bullet if possible
+	        delTime = bulletDelay;    // Reset bullet timer
+	    }
+	    player.updateWeapon();
+	    player.update();              // Update player 
+	    updateAllBullets();           // Move and clean up bullets
+	    updateAllEnemies();           // Move and handle enemy logic
+	    handlePlayerCollisions();     // Check and handle player collisions
+	    handleBulletEnemyCollisions();// Check and handle bullet-enemy collisions
+	    handleEnemySpawning();        // Spawn enemies if needed
 	}
 
 	public void paintComponent(Graphics g) {
