@@ -4,7 +4,6 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
-
 import main.GamePanel;
 import main.KeyHandler;
 import main.MouseHandler;
@@ -17,6 +16,10 @@ public class Player extends Entity{
 	float velocityX = 0;
 	float velocityY = 0;
 	float playerSpeed = 2.0f;
+	
+	//Idol image counter 
+	int idolCounter = 0;
+	int idolNum = 1;
 	
 	//weapon 
 	public Weapon currWeapon;
@@ -46,15 +49,15 @@ public class Player extends Entity{
 	}
 	
 	public void getPlayerImage() {
-		up1 = getScaledImage("/player/guy_up_1");
-		up2 = getScaledImage("/player/guy_up_2");
-		down1 = getScaledImage("/player/guy_down_1");
-		down2 = getScaledImage("/player/guy_down_2");
-		left1 = getScaledImage("/player/guy_left_1");
-		left2 = getScaledImage("/player/guy_left_2");
-		right1 = getScaledImage("/player/guy_right_1");
-		right2 = getScaledImage("/player/guy_right_2");
+		idol1 = getScaledImage("/player/idol1");
+		idol2 = getScaledImage("/player/idol2");
+		idol3 = getScaledImage("/player/idol3");
+		left1 = getScaledImage("/player/left1");
+		left2 = getScaledImage("/player/left2");
+		right1 = getScaledImage("/player/right1");
+		right2 = getScaledImage("/player/right2");
 	}
+	
 	
 	public void getWeaponImage(String imagePath) {
 		weapon1 = getScaledImage(imagePath);
@@ -110,6 +113,22 @@ public class Player extends Entity{
 				}
 				spriteCounter = 0;
 			}	
+			}
+		idolCounter++;
+		if(idolCounter > 10) {
+			if(idolNum == 1) {
+				idolNum = 2;
+			}
+			else if(idolNum == 2) {
+				idolNum = 3;
+			}
+			else if(idolNum == 3) {
+				idolNum = 1;
+			}
+			idolCounter = 0;
+		}
+		if(keyH.upKey == false && keyH.downKey == false && keyH.rightKey == false && keyH.leftKey == false) {
+			direction = "idol";
 		}	
 	}
 	
@@ -120,20 +139,31 @@ public class Player extends Entity{
 		weapon = weapon1;
 		
 		switch(direction) {
+		case "idol":
+			if(idolNum == 1) {
+				player= idol1;				
+			}
+			if(idolNum == 2) {
+				player= idol2;				
+			}
+			if(idolNum == 3) {
+				player = idol3;
+			}
+			break;
 		case "up":
 			if(spriteNum == 1) {
-				player= up1;				
+				player= right1;				
 			}
 			if(spriteNum == 2) {
-				player= up2;				
+				player= right2;				
 			}			
 			break;
 		case "down":
 			if(spriteNum == 1) {
-				player= down1;				
+				player= left1;				
 			}
 			if(spriteNum == 2) {
-				player= down2;
+				player= left2;
 			}
 			break;
 		case "left":

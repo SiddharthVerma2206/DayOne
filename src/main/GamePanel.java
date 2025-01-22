@@ -18,11 +18,11 @@ import tile.TileManager;
 public class GamePanel extends JPanel implements Runnable{
 
 	// Screen Settings
-	final int orignalTileSize = 16;  //16*16
+	final int orignalTileSize = 24;  //16*16
 	final int scale = 2;
 	public final int tileSize = orignalTileSize * scale ; 
-	public final int maxScreenCol = 25;
-	public final int maxScreenRow = 20;
+	public final int maxScreenCol = 23;
+	public final int maxScreenRow = 13;
 	public final int screenWidth = tileSize * maxScreenCol;
 	public final int screenHeight = tileSize * maxScreenRow;
 
@@ -139,6 +139,13 @@ public class GamePanel extends JPanel implements Runnable{
             spawnY = random.nextDouble() * screenHeight; // Random y position
         }
 		Enemy enemy = new Enemy(this , spawnX , spawnY);
+		if(spawnX > player.worldX) {
+			enemy.image = enemy.getScaledImage("/player/rightSpawn");
+		}else if(spawnX < player.worldX){
+			enemy.image = enemy.getScaledImage("/player/leftSpawn");
+		}else {			
+			enemy.image = enemy.getScaledImage("/player/rightSpawn");
+		}
 		currEnemies.add(enemy);
 	}
 	
@@ -218,7 +225,6 @@ public class GamePanel extends JPanel implements Runnable{
 	    currBullets.removeAll(bulletsToRemove);
 	    currEnemies.removeAll(enemiesToRemove);
 	}
-
 	
 	public void update() {
 		updateTimers();               // Manage all time-related logic
