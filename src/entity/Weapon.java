@@ -1,5 +1,4 @@
 package entity;
-
 public class Weapon {
 	private String name ;
 	private int reloadTime , delTime , damage, maxBullets;

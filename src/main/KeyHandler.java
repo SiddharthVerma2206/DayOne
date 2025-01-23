@@ -45,7 +45,7 @@ public class KeyHandler implements KeyListener {
 			rightKey = true;
 		}
 		if(code == KeyEvent.VK_E) {
-			weaponChangeKey = true;
+			gp.player.changeWeapon();
 		}
 		if(code == KeyEvent.VK_R) {
 			gp.isReloading = true;
@@ -75,10 +75,6 @@ public class KeyHandler implements KeyListener {
 		if(code == KeyEvent.VK_D) {
 			rightKey = false;
 		}
-		if(code == KeyEvent.VK_E) {
-			weaponChangeKey = false;
-		}
-		
 	}
 	
 	public void menuControls(int code) {

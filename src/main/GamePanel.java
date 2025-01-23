@@ -1,13 +1,22 @@
 package main;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Label;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
 
+import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import entity.Bullet;
@@ -35,6 +44,7 @@ public class GamePanel extends JPanel implements Runnable{
 	int defSpawnDelay = 120;
 	int spawnDelay=defSpawnDelay;
 	int enemiesSpawned = 0;
+	int totalEnemiesSpawned = 0;
 	
 	//Bullets
 	private ArrayList<Bullet>currBullets = new ArrayList<>();
@@ -77,6 +87,15 @@ public class GamePanel extends JPanel implements Runnable{
 		this.addMouseListener(mouH);
         this.addMouseMotionListener(mouH);
 		this.setFocusable(true);
+		BufferedImage img = null;
+		try {
+			img = ImageIO.read(getClass().getResourceAsStream("/player/cursor.png"));
+		}catch(IOException e){
+			e.printStackTrace();
+		}
+		Point p11 = new Point(0, 0); 
+		Cursor c = Toolkit.getDefaultToolkit().createCustomCursor(img, p11, "cursor1");
+		this.setCursor(c);
 	}
 	
 	public void startGameThread() {
@@ -127,6 +146,7 @@ public class GamePanel extends JPanel implements Runnable{
 	}
 	
 	public void setBulletValues() {
+		bulletCount = 0;
 		bulletDelay = player.currWeapon.getDelTime();
 		reloadDelay = player.currWeapon.getReloadTime();
 		maxBullets  = player.currWeapon.getMaxBullets();
@@ -230,7 +250,8 @@ public class GamePanel extends JPanel implements Runnable{
 	    if (spawnDelay <= 0) {
 	        spawnEnemy();
 	        enemiesSpawned++;
-	        if(enemiesSpawned>=10) {
+	        totalEnemiesSpawned++;
+	        if(enemiesSpawned>=5 && totalEnemiesSpawned <=36) {
 	        	enemiesSpawned = 0;
 	        	 defSpawnDelay-=10;
 	        }

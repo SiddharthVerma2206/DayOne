@@ -3,6 +3,7 @@ package entity;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
 import main.GamePanel;
 import main.KeyHandler;
@@ -21,9 +22,11 @@ public class Player extends Entity{
 	int idolCounter = 0;
 	int idolNum = 1;
 	
-	//weapon 
+	//weapon
+	ArrayList<Weapon>allWeapons = new ArrayList<>();
 	public Weapon currWeapon;
-	BufferedImage weapon1 = null;
+	int weaponNum = 0;
+	BufferedImage weaponImg = null;
 	public BufferedImage reload1=null , reload2=null;
 	boolean revolver = true;
 	double weaponAngle;
@@ -38,13 +41,12 @@ public class Player extends Entity{
 		this.mouH = mouH;
 		setDefaultValues();
 		getPlayerImage();
+		getAllWeapon();
 	}
 
 	public void setDefaultValues() {
 		worldX = (gp.screenWidth/2) - correction;
 		worldY = (gp.screenHeight/2) - correction;
-		currWeapon = new Weapon("Pistol" ,120 ,30 ,6 ,2 ,"/player/Pistol");
-		getWeaponImage(currWeapon.getImagePath());
 		health = 4;
 		radius = 10;
 		direction = "down";
@@ -60,24 +62,40 @@ public class Player extends Entity{
 		right2 = getScaledImage("/player/right2");
 	}
 	
-	
-	public void getWeaponImage(String imagePath) {
-		weapon1 = getScaledImage(imagePath);
+	public void getAllWeapon() {
+		Weapon pistol = new Weapon("Pistol" ,80 ,40 ,6 ,2 ,"/player/Pistol");
+		Weapon SMG = new Weapon("SMG" ,120 ,20 ,25 ,1 ,"/player/SMG");
+		Weapon bow = new Weapon("bow" ,100 ,30 ,4 ,1 ,"/player/Pistol");
+		Weapon shotGun = new Weapon("shotGun" ,120 ,60 ,8 ,2 ,"/player/SMG");
+		allWeapons.add(pistol);
+		allWeapons.add(SMG);
+		allWeapons.add(bow);
+		allWeapons.add(shotGun);
+		currWeapon = allWeapons.get(weaponNum);
+		weaponImg = getWeaponImage(currWeapon.getImagePath());
 		reload1 = getScaledImage("/player/reload1");
 		reload2 = getScaledImage("/player/reload2");
+	}
+	
+	public BufferedImage getWeaponImage(String imagePath) {
+		BufferedImage weapon = getScaledImage(imagePath);
+		return weapon;
 	}
 	
 	public void updateWeapon() {
 		double deltaX = mouH.mouseX - worldX;
         double deltaY = mouH.mouseY- worldY;
         this.weaponAngle = Math.atan2(deltaY, deltaX);
-        gp.setBulletValues();
 	}
 	
 	public void changeWeapon() {
-		Weapon newWeapon = new Weapon("SMG", 60 , 15 ,25 , 1, "/player/SMG");
-		this.currWeapon = newWeapon;
-		getWeaponImage(currWeapon.getImagePath());
+		weaponNum++;
+		if(weaponNum >= allWeapons.size()) {
+			weaponNum = 0;
+		}
+		currWeapon = allWeapons.get(weaponNum);
+		weaponImg = getWeaponImage(currWeapon.getImagePath());
+		gp.setBulletValues();
 	}
 	
 	public void update() {
@@ -87,10 +105,6 @@ public class Player extends Entity{
 		}
 		velocityX = 0;
 	    velocityY = 0;
-		if(keyH.weaponChangeKey == true) {
-			changeWeapon();
-			keyH.weaponChangeKey = false;
-		}
 		if(keyH.upKey == true || keyH.downKey == true ||keyH.rightKey == true || keyH.leftKey == true) {
 			if (keyH.upKey) {
 		        velocityY = -playerSpeed;
@@ -165,7 +179,7 @@ public class Player extends Entity{
 			}
 		}
 		else {
-		weapon = weapon1;
+		weapon = weaponImg;
 	    }
 		switch(direction) {
 		case "idol":
